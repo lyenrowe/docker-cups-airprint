@@ -68,7 +68,8 @@ Set any number of variables which start with `CUPS_LPADMIN_PRINTER`. These will 
 ```shell script
 CUPS_LPADMIN_PRINTER1=lpadmin -p test -D 'Test printer' -m raw -v ipp://myhost/printer
 CUPS_LPADMIN_PRINTER2=lpadmin -p second -D 'another' -m everywhere -v ipp://myhost/second
-CUPS_LPADMIN_PRINTER3=lpadmin -p third -D 'samba printer' -m '..the right driver string...' -o PageSize=A4 -v smb://user:pass@host/printer
+# 暂去除
+#CUPS_LPADMIN_PRINTER3=lpadmin -p third -D 'samba printer' -m '..the right driver string...' -o PageSize=A4 -v smb://user:pass@host/printer
 CUPS_LPADMIN_PRINTER3_ENABLE=cupsenable third
 ```
 
@@ -238,6 +239,70 @@ https://github.com/DrPsychick/docker-cups-airprint/issues
 * using `macvlan` is not possible, instead you should use `qnet` driver to create the docker network
 ```shell script
 docker network create --driver=qnet --ipam-driver=qnet --ipam-opt=iface=bond0 --subnet ...
+```
+
+## For me
+```
+$ docker exec -it cups-test /bin/bash
+root@cups:/# lpinfo --make-and-model "Epson L3153" -m
+lpinfo: client-error-not-found
+root@cups:/# lpinfo --make-and-model "Epson L3150" -m
+escpr:0/cups/model/epson-inkjet-printer-escpr/Epson-L3150_Series-epson-escpr-en.ppd EPSON L3150 Series , Epson Inkjet Printer Driver (ESC/P-R) for Linux
+everywhere IPP Everywhere
+```
+
+In order to avoid conflicts with the host's port and make it easier accessiable for the local area network, I plan to assign an independent IP to the container on the same network segment as the host.
+```
+$ docker network inspect subnet
+[
+    {
+        "Name": "subnet",
+        "Id": "47e0e7621a2654a3cb9a9e3d5c48194a2e273403d2fa742018df8aebf7ca9c86",
+        "Created": "2021-10-31T12:29:41.131898177+08:00",
+        "Scope": "local",
+        "Driver": "macvlan",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+                {
+                    "Subnet": "10.0.0.0/24",
+                    "IPRange": "10.0.0.0/24",
+                    "Gateway": "10.0.0.1"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": {
+            "c2149afcdd7ca531e4c0d22544c6f96d6bd096d8d0030edb224e0a604338a7f4": {
+                "Name": "cups-test",
+                "EndpointID": "5d382025bc924928e6832b42077af1ca3c7a59027c83ebcd0c22316b17da61d1",
+                "MacAddress": "02:42:0a:00:00:7b",
+                "IPv4Address": "10.0.0.123/24",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {
+            "macvlan_mode": "bridge",
+            "parent": "br-lan"
+        },
+        "Labels": {}
+    }
+]
+```
+Run docker with printer settings
+```
+docker run -itd --name cups-test --net=subnet --ip=10.0.0.123 --hostname=cups.home \
+  -e CUPS_USER_ADMIN=admin -e CUPS_USER_PASSWORD=secr3t \
+  -e CUPS_LPADMIN_PRINTER1="lpadmin -p Epson-L3153 -D 'Epson L3153 Series' -m 'escpr:0/cups/model/epson-inkjet-printer-escpr/Epson-L3150_Series-epson-escpr-en.ppd' -o PageSize=A4 -v lpd://10.0.0.18:515/PASSTHRU|EPSON L3150 Series" \
+  lyenrowe/airprint-bridge:latest
 ```
 
 # Credits
