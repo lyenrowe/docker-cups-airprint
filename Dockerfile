@@ -2,6 +2,12 @@ ARG UBUNTU_VERSION=eoan
 FROM ubuntu:$UBUNTU_VERSION
 MAINTAINER drpsychick@drsick.net
 
+# backup your sources file
+RUN cp /etc/apt/sources.list /etc/apt/sources.list.bak 
+# replace the links with the archive address
+#sudo sed -i -re 's/([a-z]{2}.)?archive.ubuntu.com|security.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
+RUN sed -i "s/ports.ubuntu.com\/ubuntu-ports/old-releases.ubuntu.com\/ubuntu/g" /etc/apt/sources.list
+
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get -y upgrade
 RUN apt-get -y install \
@@ -22,7 +28,7 @@ RUN apt-get -y install \
       inotify-tools \
       libpng16-16 \
       python3-cups \
-#      samba-client \
+#      samba-client
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/* \
