@@ -252,6 +252,7 @@ everywhere IPP Everywhere
 ```
 
 In order to avoid conflicts with the host's port and make it easier accessiable for the local area network, I plan to assign an independent IP to the container on the same network segment as the host.
+This setting would cause the machine to not be able to access the Internet, That was I discovered in later
 ```
 $ docker network inspect subnet
 [
