@@ -47,6 +47,14 @@ if [ "yes" = "${CUPS_REMOTE_ADMIN}" ]; then
     echo "Listen \*:631" >> /etc/cups/cupsd.conf ||
     sed -i 's/Listen localhost:631/Listen \*:631/' /etc/cups/cupsd.conf
 fi
+### fix CUPS无法打印，报错“Unable to encrypt connection” see https://t2.re/archives/867/
+# 问题现象
+#CUPS使用http连接打印机无法打印，Samba共享连接打印正常
+#访问CUPS管理页面响应慢，无法访问https管理页面，CUPS错误日志内容如下
+#Unable to encrypt connection: A TLS fatal alert has been received.
+# 解决方法
+#禁用CUPS的https功能
+echo "DefaultEncryption Never" >> /etc/cups/cupsd.conf
 # own SSL cert:
 # CreateSelfSignedCerts no
 # host.name.crt & host.name.key -> /etc/cups/ssl/
