@@ -6,7 +6,10 @@ MAINTAINER drpsychick@drsick.net
 RUN cp /etc/apt/sources.list /etc/apt/sources.list.bak 
 # replace the links with the archive address
 #sudo sed -i -re 's/([a-z]{2}.)?archive.ubuntu.com|security.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
+# for arm arch. 估计arm架构的是ports.ubuntu.com
 RUN sed -i "s/ports.ubuntu.com\/ubuntu-ports/old-releases.ubuntu.com\/ubuntu/g" /etc/apt/sources.list
+# for amd arch
+RUN sed -i -re 's/([a-z]{2}.)?archive.ubuntu.com|security.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get -y upgrade
